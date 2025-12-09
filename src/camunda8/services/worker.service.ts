@@ -1,9 +1,4 @@
-import {
-  Injectable,
-  OnModuleInit,
-  OnModuleDestroy,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import type { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Camunda8Service } from './camunda8.service';
@@ -21,7 +16,7 @@ import type {
 } from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
 
 @Injectable()
-export class WorkerService implements OnModuleInit, OnModuleDestroy {
+export class WorkerService implements OnModuleDestroy {
   private readonly logger = new Logger(WorkerService.name);
   private readonly workers: ZBWorker<
     IInputVariables,
@@ -34,11 +29,11 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
     private readonly discoveryService: DiscoveryService,
   ) {}
 
-  onModuleInit(): void {
-    this.registerWorkers();
-  }
-
-  private registerWorkers(): void {
+  /**
+   * Register all worker handlers discovered in the application.
+   * This method is called by CoordinatorService after deployment.
+   */
+  registerWorkers(): void {
     try {
       const camunda8Client = this.camunda8Service.getCamunda8Client();
       const zeebeClient = camunda8Client.getZeebeGrpcApiClient();

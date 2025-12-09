@@ -2,6 +2,7 @@ import { Injectable, Inject } from '@nestjs/common';
 import { Camunda8 } from '@camunda8/sdk';
 import type { CamundaClientLoose } from '@camunda8/orchestration-cluster-api';
 import type { Camunda8Options } from '../interfaces/camunda8-options.interface';
+import { mapToSdkConfiguration } from '../interfaces/camunda8-options.interface';
 import { CAMUNDA8_OPTIONS } from '../camunda8.constants';
 
 @Injectable()
@@ -13,14 +14,8 @@ export class Camunda8Service {
     @Inject(CAMUNDA8_OPTIONS)
     private readonly options: Camunda8Options,
   ) {
-    this.camunda = new Camunda8({
-      CAMUNDA_AUTH_STRATEGY: this.options.CAMUNDA_AUTH_STRATEGY,
-      ZEEBE_GRPC_ADDRESS: this.options.ZEEBE_GRPC_ADDRESS,
-      ZEEBE_REST_ADDRESS: this.options.ZEEBE_REST_ADDRESS,
-      ZEEBE_CLIENT_ID: this.options.ZEEBE_CLIENT_ID,
-      ZEEBE_CLIENT_SECRET: this.options.ZEEBE_CLIENT_SECRET,
-      CAMUNDA_OAUTH_URL: this.options.CAMUNDA_OAUTH_URL,
-    });
+    const sdkConfig = mapToSdkConfiguration(options);
+    this.camunda = new Camunda8(sdkConfig);
 
     this.orchestration = this.camunda.getOrchestrationClusterApiClientLoose();
   }
