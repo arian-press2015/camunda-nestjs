@@ -1,11 +1,14 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { Camunda8Module } from './camunda8/camunda8.module';
+import { CamundaModule } from './camunda/camunda.module';
+import { CheckInventoryWorker } from './workers/check-inventory.worker';
+import { ChargePaymentWorker } from './workers/charge-payment.worker';
+import { ShipItemsWorker } from './workers/ship-items.worker';
 
 @Module({
   imports: [
-    Camunda8Module.forRoot({
+    CamundaModule.forRoot({
       client: {
         authStrategy: 'OAUTH',
         zeebeGrpcAddress: 'grpc://localhost:26500',
@@ -16,12 +19,16 @@ import { Camunda8Module } from './camunda8/camunda8.module';
           'http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token',
       },
       workflow: {
-        bpmn: './path/to/process.bpmn',
-        form: './path/to/form.form',
+        bpmn: './assets/order.bpmn',
       },
     }),
   ],
   controllers: [AppController],
-  providers: [AppService],
+  providers: [
+    AppService,
+    CheckInventoryWorker,
+    ChargePaymentWorker,
+    ShipItemsWorker,
+  ],
 })
 export class AppModule {}
