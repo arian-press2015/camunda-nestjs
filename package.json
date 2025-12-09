@@ -2,7 +2,7 @@
   "name": "camunda-nestjs",
   "version": "0.1.0",
   "description": "Camunda8 integration module for NestJS with automatic worker discovery and workflow management",
-  "author": "",
+  "author": "arian-press2015 <arian.press2015@gmail.com>",
   "license": "MIT",
   "private": false,
   "main": "dist/lib/camunda/index.js",
@@ -32,12 +32,12 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/your-username/camunda-nestjs.git"
+    "url": "https://github.com/arian-press2015/camunda-nestjs.git"
   },
   "bugs": {
-    "url": "https://github.com/your-username/camunda-nestjs/issues"
+    "url": "https://github.com/arian-press2015/camunda-nestjs/issues"
   },
-  "homepage": "https://github.com/your-username/camunda-nestjs#readme",
+  "homepage": "https://github.com/arian-press2015/camunda-nestjs#readme",
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "build:lib": "tsc -p tsconfig.build.json",
