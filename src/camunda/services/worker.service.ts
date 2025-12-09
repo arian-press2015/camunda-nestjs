@@ -1,11 +1,11 @@
 import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import type { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
-import { Camunda8Service } from './camunda8.service';
-import { WORKER_JOB_METADATA_KEY } from '../camunda8.constants';
+import { CamundaService } from './camunda.service';
+import { WORKER_JOB_METADATA_KEY } from '../camunda.constants';
 import 'reflect-metadata';
-import { Camunda8WorkerJobMetadata } from '../interfaces/camunda8-worker-job-metadata.interface';
-import { Camunda8WorkerHandler } from '../base/camunda8-worker-handler.base';
+import { Camunda8WorkerJobMetadata } from '../interfaces/camunda-worker-job-metadata.interface';
+import { Camunda8WorkerHandler } from '../base/camunda-worker-handler.base';
 import type { ZeebeGrpcClient } from '@camunda8/sdk/dist/zeebe/zb/ZeebeGrpcClient';
 import type { ZBWorker } from '@camunda8/sdk/dist/zeebe';
 import type {
@@ -25,7 +25,7 @@ export class WorkerService implements OnModuleDestroy {
   >[] = [];
 
   constructor(
-    private readonly camunda8Service: Camunda8Service,
+    private readonly CamundaService: CamundaService,
     private readonly discoveryService: DiscoveryService,
   ) {}
 
@@ -35,7 +35,7 @@ export class WorkerService implements OnModuleDestroy {
    */
   registerWorkers(): void {
     try {
-      const camunda8Client = this.camunda8Service.getCamunda8Client();
+      const camunda8Client = this.CamundaService.getCamunda8Client();
       const zeebeClient = camunda8Client.getZeebeGrpcApiClient();
 
       const providers: InstanceWrapper[] = this.discoveryService.getProviders();

@@ -1,52 +1,52 @@
 import { Module, DynamicModule, Global } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-import { Camunda8Service } from './services/camunda8.service';
+import { CamundaService } from './services/camunda.service';
 import { WorkerService } from './services/worker.service';
 import { DeploymentService } from './services/deployment.service';
 import { CoordinatorService } from './services/coordinator.service';
-import type { Camunda8Options } from './interfaces/camunda8-options.interface';
-import { CAMUNDA8_OPTIONS } from './camunda8.constants';
+import type { CamundaOptions } from './interfaces/camunda-options.interface';
+import { CAMUNDA8_OPTIONS } from './camunda.constants';
 
 @Global()
 @Module({})
-export class Camunda8Module {
-  static forRoot(options: Camunda8Options): DynamicModule {
+export class CamundaModule {
+  static forRoot(options: CamundaOptions): DynamicModule {
     return {
-      module: Camunda8Module,
+      module: CamundaModule,
       providers: [
         {
           provide: CAMUNDA8_OPTIONS,
           useValue: options,
         },
-        Camunda8Service,
+        CamundaService,
         DeploymentService,
         WorkerService,
         CoordinatorService,
         DiscoveryService,
       ],
-      exports: [Camunda8Service],
+      exports: [CamundaService],
     };
   }
 
   static forRootAsync(options: {
-    useFactory: (...args: any[]) => Promise<Camunda8Options> | Camunda8Options;
+    useFactory: (...args: any[]) => Promise<CamundaOptions> | CamundaOptions;
     inject?: any[];
   }): DynamicModule {
     return {
-      module: Camunda8Module,
+      module: CamundaModule,
       providers: [
         {
           provide: CAMUNDA8_OPTIONS,
           useFactory: options.useFactory,
           inject: options.inject || [],
         },
-        Camunda8Service,
+        CamundaService,
         DeploymentService,
         WorkerService,
         CoordinatorService,
         DiscoveryService,
       ],
-      exports: [Camunda8Service],
+      exports: [CamundaService],
     };
   }
 }

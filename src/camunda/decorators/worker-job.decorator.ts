@@ -1,6 +1,6 @@
 import 'reflect-metadata';
-import { WORKER_JOB_METADATA_KEY } from '../camunda8.constants';
-import { Camunda8WorkerJobMetadata } from '../interfaces/camunda8-worker-job-metadata.interface';
+import { WORKER_JOB_METADATA_KEY } from '../camunda.constants';
+import { Camunda8WorkerJobMetadata } from '../interfaces/camunda-worker-job-metadata.interface';
 
 /**
  * Class decorator to mark a class as a Camunda8 worker handler.

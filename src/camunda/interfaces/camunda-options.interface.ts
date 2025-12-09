@@ -1,10 +1,10 @@
 import type { Camunda8ClientConfiguration } from '@camunda8/sdk/dist/lib';
 
 /**
- * Simplified Camunda8 module options with lowercase keys.
+ * Simplified Camunda module options with lowercase keys.
  * This interface is mapped to the SDK's uppercase configuration internally.
  */
-export interface Camunda8Options {
+export interface CamundaOptions {
   /**
    * Client connection and authentication configuration
    */
@@ -53,15 +53,15 @@ export interface Camunda8Options {
     /**
      * Path to the form file to deploy
      */
-    form: string;
+    form?: string;
   };
 }
 
 /**
- * Maps simplified Camunda8Options to SDK's Camunda8ClientConfiguration
+ * Maps simplified CamundaOptions to SDK's Camunda8ClientConfiguration
  */
 export function mapToSdkConfiguration(
-  options: Camunda8Options,
+  options: CamundaOptions,
 ): Camunda8ClientConfiguration {
   return {
     CAMUNDA_AUTH_STRATEGY: options.client.authStrategy,
