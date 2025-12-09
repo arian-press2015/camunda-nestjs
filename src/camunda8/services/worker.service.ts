@@ -1,15 +1,32 @@
-import { Injectable, OnModuleInit, Logger } from '@nestjs/common';
+import {
+  Injectable,
+  OnModuleInit,
+  OnModuleDestroy,
+  Logger,
+} from '@nestjs/common';
 import { DiscoveryService, MetadataScanner } from '@nestjs/core';
 import type { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Camunda8Service } from './camunda8.service';
 import { WORKER_JOB_METADATA_KEY } from '../camunda8.constants';
 import 'reflect-metadata';
 import { Camunda8WorkerJobMetadata } from '../interfaces/camunda8-worker-job-metadata.interface';
-import type { CamundaClientLoose } from '@camunda8/orchestration-cluster-api';
+import type { ZeebeGrpcClient } from '@camunda8/sdk/dist/zeebe/zb/ZeebeGrpcClient';
+import type { ZBWorker } from '@camunda8/sdk/dist/zeebe';
+import type {
+  IInputVariables,
+  ICustomHeaders,
+  IOutputVariables,
+  ZeebeJob,
+} from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
 
 @Injectable()
-export class WorkerService implements OnModuleInit {
+export class WorkerService implements OnModuleInit, OnModuleDestroy {
   private readonly logger = new Logger(WorkerService.name);
+  private readonly workers: ZBWorker<
+    IInputVariables,
+    ICustomHeaders,
+    IOutputVariables
+  >[] = [];
 
   constructor(
     private readonly camunda8Service: Camunda8Service,
@@ -17,19 +34,20 @@ export class WorkerService implements OnModuleInit {
     private readonly scanner: MetadataScanner,
   ) {}
 
-  async onModuleInit(): Promise<void> {
-    await this.registerWorkers();
+  onModuleInit(): void {
+    this.registerWorkers();
   }
 
-  private async registerWorkers(): Promise<void> {
+  private registerWorkers(): void {
     try {
-      const orchestration = this.camunda8Service.getOrchestrationClient();
+      const camunda8Client = this.camunda8Service.getCamunda8Client();
+      const zeebeClient = camunda8Client.getZeebeGrpcApiClient();
 
       const providers: InstanceWrapper[] = this.discoveryService.getProviders();
 
       for (const wrapper of providers) {
         // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-        const instance = wrapper.instance;
+        const instance: object = wrapper.instance;
 
         if (!instance || typeof instance !== 'object') {
           continue;
@@ -45,8 +63,8 @@ export class WorkerService implements OnModuleInit {
           ) as Camunda8WorkerJobMetadata | undefined;
 
           if (metadata) {
-            await this.registerWorker(
-              orchestration,
+            this.registerWorker(
+              zeebeClient,
               metadata.jobType,
               instance,
               methodName,
@@ -79,30 +97,48 @@ export class WorkerService implements OnModuleInit {
     return methods;
   }
 
-  private async registerWorker(
-    orchestration: CamundaClientLoose,
+  private registerWorker(
+    zeebeClient: ZeebeGrpcClient,
     jobType: string,
     instance: object,
     methodName: string,
-  ) {
+  ): void {
     try {
       // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
       const handler = instance[methodName].bind(instance);
-
-      const result = await orchestration.activateJobs({
-        type: jobType,
-        maxJobsToActivate: 1,
-        timeout: 60000,
-        worker: 'order-worker',
+      const worker = zeebeClient.createWorker({
+        taskType: jobType,
+        taskHandler: async (
+          job: Readonly<
+            ZeebeJob<IInputVariables, ICustomHeaders, IOutputVariables>
+          >,
+        ) => {
+          this.logger.debug(`Processing job ${jobType} with key ${job.key}`);
+          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
+          return await handler(job);
+        },
       });
 
-      for (const job of result.jobs) {
-        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
-        await handler(job);
-      }
+      this.workers.push(worker);
+      this.logger.log(`Registered worker for job type: ${jobType}`);
     } catch (error) {
-      this.logger.error('Error registering worker', error);
-      throw error;
+      this.logger.error(
+        `Failed to register worker for job type: ${jobType}`,
+        error,
+      );
     }
+  }
+
+  async onModuleDestroy(): Promise<void> {
+    this.logger.log('Shutting down workers...');
+    for (const worker of this.workers) {
+      try {
+        await worker.close();
+      } catch (error) {
+        this.logger.error('Error closing worker', error);
+      }
+    }
+
+    this.workers.length = 0;
   }
 }
