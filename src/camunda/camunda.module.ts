@@ -1,9 +1,9 @@
 import { Module, DynamicModule, Global } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
-import { CamundaService } from './services/camunda.service';
-import { WorkerService } from './services/worker.service';
-import { DeploymentService } from './services/deployment.service';
-import { CoordinatorService } from './services/coordinator.service';
+import { CamundaClientService } from './services/camunda-client.service';
+import { CamundaWorkerService } from './services/camunda-worker.service';
+import { CamundaDeploymentService } from './services/camunda-deployment.service';
+import { CamundaCoordinatorService } from './services/camunda-coordinator.service';
 import type {
   CamundaClientOptions,
   CamundaWorkflowOptions,
@@ -41,10 +41,10 @@ export class CamundaModule {
           provide: CAMUNDA8_OPTIONS,
           useValue: options,
         },
-        CamundaService,
+        CamundaClientService,
         DiscoveryService,
       ],
-      exports: [CamundaService],
+      exports: [CamundaClientService],
     };
   }
 
@@ -79,10 +79,10 @@ export class CamundaModule {
           useFactory: options.useFactory,
           inject: options.inject || [],
         },
-        CamundaService,
+        CamundaClientService,
         DiscoveryService,
       ],
-      exports: [CamundaService],
+      exports: [CamundaClientService],
     };
   }
 
@@ -108,12 +108,12 @@ export class CamundaModule {
           provide: CAMUNDA8_WORKFLOW_OPTIONS,
           useValue: options,
         },
-        DeploymentService,
-        WorkerService,
-        CoordinatorService,
+        CamundaDeploymentService,
+        CamundaWorkerService,
+        CamundaCoordinatorService,
         DiscoveryService,
       ],
-      exports: [DeploymentService],
+      exports: [CamundaDeploymentService],
     };
   }
 
@@ -147,12 +147,12 @@ export class CamundaModule {
           useFactory: options.useFactory,
           inject: options.inject || [],
         },
-        DeploymentService,
-        WorkerService,
-        CoordinatorService,
+        CamundaDeploymentService,
+        CamundaWorkerService,
+        CamundaCoordinatorService,
         DiscoveryService,
       ],
-      exports: [DeploymentService],
+      exports: [CamundaDeploymentService],
     };
   }
 }

@@ -6,7 +6,7 @@ import { mapToSdkConfiguration } from '../interfaces/camunda-options.interface';
 import { CAMUNDA8_OPTIONS } from '../camunda.constants';
 
 @Injectable()
-export class CamundaService {
+export class CamundaClientService {
   private readonly camunda: Camunda8;
   private readonly orchestration: CamundaClientLoose;
 

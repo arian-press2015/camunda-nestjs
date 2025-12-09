@@ -1,5 +1,5 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
-import { CamundaService } from './camunda.service';
+import { CamundaClientService } from './camunda-client.service';
 import { CAMUNDA8_WORKFLOW_OPTIONS } from '../camunda.constants';
 import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.interface';
 
@@ -7,11 +7,11 @@ import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.inter
  * Service responsible for deploying BPMN and form resources to Camunda
  */
 @Injectable()
-export class DeploymentService {
-  private readonly logger = new Logger(DeploymentService.name);
+export class CamundaDeploymentService {
+  private readonly logger = new Logger(CamundaDeploymentService.name);
 
   constructor(
-    private readonly CamundaService: CamundaService,
+    private readonly CamundaClientService: CamundaClientService,
     @Inject(CAMUNDA8_WORKFLOW_OPTIONS)
     private readonly options: CamundaWorkflowOptions,
   ) {}
@@ -34,7 +34,7 @@ export class DeploymentService {
         this.logger.log(`[${workflowName}] Deploying BPMN resources...`);
       }
 
-      const orchestration = this.CamundaService.getOrchestrationClient();
+      const orchestration = this.CamundaClientService.getOrchestrationClient();
       const result =
         await orchestration.deployResourcesFromFiles(resourcesToDeploy);
 

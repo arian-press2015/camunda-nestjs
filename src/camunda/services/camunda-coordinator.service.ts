@@ -1,6 +1,6 @@
 import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
-import { DeploymentService } from './deployment.service';
-import { WorkerService } from './worker.service';
+import { CamundaDeploymentService } from './camunda-deployment.service';
+import { CamundaWorkerService } from './camunda-worker.service';
 import { CAMUNDA8_WORKFLOW_OPTIONS } from '../camunda.constants';
 import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.interface';
 
@@ -9,12 +9,12 @@ import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.inter
  * deployment and worker registration services for a specific workflow.
  */
 @Injectable()
-export class CoordinatorService implements OnModuleInit {
-  private readonly logger = new Logger(CoordinatorService.name);
+export class CamundaCoordinatorService implements OnModuleInit {
+  private readonly logger = new Logger(CamundaCoordinatorService.name);
 
   constructor(
-    private readonly deploymentService: DeploymentService,
-    private readonly workerService: WorkerService,
+    private readonly deploymentService: CamundaDeploymentService,
+    private readonly workerService: CamundaWorkerService,
     @Inject(CAMUNDA8_WORKFLOW_OPTIONS)
     private readonly workflowOptions: CamundaWorkflowOptions,
   ) {}

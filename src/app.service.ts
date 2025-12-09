@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
-import { CamundaService } from './camunda/services/camunda.service';
+import { CamundaClientService } from './camunda/services/camunda-client.service';
 
 @Injectable()
 export class AppService {
-  constructor(private readonly CamundaService: CamundaService) {}
+  constructor(private readonly CamundaClientService: CamundaClientService) {}
 
   getHello(): string {
     return 'Hello World!';
@@ -20,7 +20,7 @@ export class AppService {
     address: string;
   }) {
     try {
-      const result = await this.CamundaService.createProcessInstance({
+      const result = await this.CamundaClientService.createProcessInstance({
         processDefinitionId: 'process1', // From the BPMN file
         variables: {
           orderId: orderData.orderId,
