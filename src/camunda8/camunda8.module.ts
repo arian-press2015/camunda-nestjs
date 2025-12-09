@@ -1,5 +1,5 @@
 import { Module, DynamicModule, Global } from '@nestjs/common';
-import { DiscoveryService, MetadataScanner } from '@nestjs/core';
+import { DiscoveryService } from '@nestjs/core';
 import { Camunda8Service } from './services/camunda8.service';
 import { WorkerService } from './services/worker.service';
 import type { Camunda8Options } from './interfaces/camunda8-options.interface';
@@ -19,7 +19,6 @@ export class Camunda8Module {
         Camunda8Service,
         WorkerService,
         DiscoveryService,
-        MetadataScanner,
       ],
       exports: [Camunda8Service],
     };
@@ -40,7 +39,6 @@ export class Camunda8Module {
         Camunda8Service,
         WorkerService,
         DiscoveryService,
-        MetadataScanner,
       ],
       exports: [Camunda8Service],
     };

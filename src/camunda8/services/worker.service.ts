@@ -4,12 +4,13 @@ import {
   OnModuleDestroy,
   Logger,
 } from '@nestjs/common';
-import { DiscoveryService, MetadataScanner } from '@nestjs/core';
+import { DiscoveryService } from '@nestjs/core';
 import type { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { Camunda8Service } from './camunda8.service';
 import { WORKER_JOB_METADATA_KEY } from '../camunda8.constants';
 import 'reflect-metadata';
 import { Camunda8WorkerJobMetadata } from '../interfaces/camunda8-worker-job-metadata.interface';
+import { Camunda8WorkerHandler } from '../base/camunda8-worker-handler.base';
 import type { ZeebeGrpcClient } from '@camunda8/sdk/dist/zeebe/zb/ZeebeGrpcClient';
 import type { ZBWorker } from '@camunda8/sdk/dist/zeebe';
 import type {
@@ -31,7 +32,6 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
   constructor(
     private readonly camunda8Service: Camunda8Service,
     private readonly discoveryService: DiscoveryService,
-    private readonly scanner: MetadataScanner,
   ) {}
 
   onModuleInit(): void {
@@ -53,24 +53,33 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
           continue;
         }
 
-        const methods = this.getMethods(instance);
+        // Get metadata from the class constructor (class decorator)
+        const constructor = instance.constructor;
+        const metadata = Reflect.getMetadata(
+          WORKER_JOB_METADATA_KEY,
+          constructor,
+        ) as Camunda8WorkerJobMetadata | undefined;
 
-        for (const methodName of methods) {
-          const metadata = Reflect.getMetadata(
-            WORKER_JOB_METADATA_KEY,
-            instance,
-            methodName,
-          ) as Camunda8WorkerJobMetadata | undefined;
-
-          if (metadata) {
-            this.registerWorker(
-              zeebeClient,
-              metadata.jobType,
-              instance,
-              methodName,
-            );
-          }
+        if (!metadata) {
+          continue;
         }
+
+        if (!(instance instanceof Camunda8WorkerHandler)) {
+          this.logger.error(
+            `Class ${constructor.name} is decorated with @WorkerJob but does not extend Camunda8WorkerHandler base class`,
+          );
+          continue;
+        }
+
+        this.registerWorker(
+          zeebeClient,
+          metadata.jobType,
+          instance as Camunda8WorkerHandler<
+            IInputVariables,
+            IOutputVariables,
+            ICustomHeaders
+          >,
+        );
       }
     } catch (error) {
       this.logger.error('Error registering workers', error);
@@ -78,34 +87,16 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  private getMethods(instance: object): string[] {
-    const methods: string[] = [];
-
-    // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment
-    const proto: object = Object.getPrototypeOf(instance);
-
-    this.scanner.getAllMethodNames(proto).forEach((methodName) => {
-      if (
-        methodName !== 'constructor' &&
-        typeof proto[methodName] === 'function' &&
-        !methods.includes(methodName)
-      ) {
-        methods.push(methodName);
-      }
-    });
-
-    return methods;
-  }
-
   private registerWorker(
     zeebeClient: ZeebeGrpcClient,
     jobType: string,
-    instance: object,
-    methodName: string,
+    handler: Camunda8WorkerHandler<
+      IInputVariables,
+      IOutputVariables,
+      ICustomHeaders
+    >,
   ): void {
     try {
-      // eslint-disable-next-line @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-member-access
-      const handler = instance[methodName].bind(instance);
       const worker = zeebeClient.createWorker({
         taskType: jobType,
         taskHandler: async (
@@ -114,8 +105,7 @@ export class WorkerService implements OnModuleInit, OnModuleDestroy {
           >,
         ) => {
           this.logger.debug(`Processing job ${jobType} with key ${job.key}`);
-          // eslint-disable-next-line @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-return
-          return await handler(job);
+          return await handler.handle(job);
         },
       });
 
