@@ -90,13 +90,13 @@ export class CamundaModule {
    * Register a workflow with its BPMN file and workers.
    * This can be called multiple times for different workflows.
    *
-   * @param options Workflow configuration including workflow name, BPMN file, and optional form
+   * @param options Workflow configuration including workflow name, BPMN file, and forms array (can be empty)
    * @example
    * ```typescript
    * CamundaModule.forFeature({
    *   workflowName: 'order-workflow',
    *   bpmn: './assets/order.bpmn',
-   *   form: './assets/order.form', // optional
+   *   forms: ['./assets/order.form', './assets/approval.form'], // required, can be empty array []
    * })
    * ```
    */

@@ -51,9 +51,9 @@ export interface CamundaWorkflowOptions {
    */
   bpmn: string;
   /**
-   * Optional path to the form file to deploy
+   * Array of form file paths to deploy (can be empty array for no forms)
    */
-  form?: string;
+  forms: string[];
 }
 
 /**

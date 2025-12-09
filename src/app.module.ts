@@ -20,6 +20,7 @@ import { ShipItemsWorker } from './workers/ship-items.worker';
     CamundaModule.forFeature({
       workflowName: 'order-workflow',
       bpmn: './assets/order.bpmn',
+      forms: [],
     }),
   ],
   controllers: [AppController],

@@ -17,18 +17,18 @@ export class DeploymentService {
   ) {}
 
   /**
-   * Deploy the configured BPMN and form files (form is optional)
+   * Deploy the configured BPMN and form files
    * @returns The deployment result
    */
   async deploy() {
     try {
-      const { bpmn, form, workflowName } = this.options;
+      const { bpmn, forms, workflowName } = this.options;
       const resourcesToDeploy = [bpmn];
 
-      if (form) {
-        resourcesToDeploy.push(form);
+      if (forms.length > 0) {
+        resourcesToDeploy.push(...forms);
         this.logger.log(
-          `[${workflowName}] Deploying BPMN and form resources...`,
+          `[${workflowName}] Deploying BPMN and ${forms.length} form resource(s)...`,
         );
       } else {
         this.logger.log(`[${workflowName}] Deploying BPMN resources...`);
@@ -38,9 +38,11 @@ export class DeploymentService {
       const result =
         await orchestration.deployResourcesFromFiles(resourcesToDeploy);
 
-      const deployedResources = form
-        ? `BPMN (${bpmn}), Form (${form})`
-        : `BPMN (${bpmn})`;
+      const formResources =
+        forms.length > 0
+          ? `, ${forms.length} form(s): ${forms.join(', ')}`
+          : '';
+      const deployedResources = `BPMN (${bpmn})${formResources}`;
       this.logger.log(
         `[${workflowName}] Successfully deployed resources: ${deployedResources}`,
       );
