@@ -1,36 +1,71 @@
 {
   "name": "camunda-nestjs",
-  "version": "0.0.1",
-  "description": "",
+  "version": "0.1.0",
+  "description": "Camunda8 integration module for NestJS with automatic worker discovery and workflow management",
   "author": "",
-  "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
+  "private": false,
+  "main": "dist/lib/camunda/index.js",
+  "types": "dist/lib/camunda/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/lib/camunda/index.js",
+      "require": "./dist/lib/camunda/index.js",
+      "types": "./dist/lib/camunda/index.d.ts"
+    }
+  },
+  "files": [
+    "dist/lib/camunda",
+    "README.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "camunda",
+    "camunda8",
+    "nestjs",
+    "workflow",
+    "bpmn",
+    "zeebe",
+    "orchestration",
+    "worker",
+    "process-engine"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/your-username/camunda-nestjs.git"
+  },
+  "bugs": {
+    "url": "https://github.com/your-username/camunda-nestjs/issues"
+  },
+  "homepage": "https://github.com/your-username/camunda-nestjs#readme",
   "scripts": {
-    "build": "nest build",
-    "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
-    "start": "nest start",
-    "start:dev": "nest start --watch",
-    "start:debug": "nest start --debug --watch",
-    "start:prod": "node dist/main",
-    "lint": "eslint \"{src,apps,libs,test}/**/*.ts\" --fix",
+    "build": "tsc -p tsconfig.build.json",
+    "build:lib": "tsc -p tsconfig.build.json",
+    "prepublishOnly": "npm run build",
+    "format": "prettier --write \"lib/**/*.ts\" \"test/**/*.ts\"",
+    "lint": "eslint \"{lib,test}/**/*.ts\" --fix",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:cov": "jest --coverage",
     "test:debug": "node --inspect-brk -r tsconfig-paths/register -r ts-node/register node_modules/.bin/jest --runInBand",
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
+  "peerDependencies": {
+    "@nestjs/common": "^10.0.0 || ^11.0.0",
+    "@nestjs/core": "^10.0.0 || ^11.0.0",
+    "reflect-metadata": "^0.1.13",
+    "rxjs": "^7.2.0"
+  },
   "dependencies": {
-    "@camunda8/sdk": "^8.0.0",
-    "@nestjs/common": "^11.0.1",
-    "@nestjs/core": "^11.0.1",
-    "@nestjs/platform-express": "^11.0.1",
-    "reflect-metadata": "^0.2.2",
-    "rxjs": "^7.8.1"
+    "@camunda8/sdk": "^8.0.0"
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.2.0",
     "@eslint/js": "^9.18.0",
     "@nestjs/cli": "^11.0.0",
+    "@nestjs/common": "^11.0.1",
+    "@nestjs/core": "^11.0.1",
+    "@nestjs/platform-express": "^11.0.1",
     "@nestjs/schematics": "^11.0.0",
     "@nestjs/testing": "^11.0.1",
     "@types/express": "^5.0.0",
@@ -43,6 +78,8 @@
     "globals": "^16.0.0",
     "jest": "^30.0.0",
     "prettier": "^3.4.2",
+    "reflect-metadata": "^0.2.2",
+    "rxjs": "^7.8.1",
     "source-map-support": "^0.5.21",
     "supertest": "^7.0.0",
     "ts-jest": "^29.2.5",
@@ -58,7 +95,7 @@
       "json",
       "ts"
     ],
-    "rootDir": "src",
+    "rootDir": "lib",
     "testRegex": ".*\\.spec\\.ts$",
     "transform": {
       "^.+\\.(t|j)s$": "ts-jest"

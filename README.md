@@ -1,98 +1,341 @@
-<p align="center">
-  <a href="http://nestjs.com/" target="blank"><img src="https://nestjs.com/img/logo-small.svg" width="120" alt="Nest Logo" /></a>
-</p>
+# camunda-nestjs
 
-[circleci-image]: https://img.shields.io/circleci/build/github/nestjs/nest/master?token=abc123def456
-[circleci-url]: https://circleci.com/gh/nestjs/nest
+A powerful NestJS module for integrating Camunda8 workflow engine with automatic worker discovery, workflow management, and seamless BPMN deployment.
 
-  <p align="center">A progressive <a href="http://nodejs.org" target="_blank">Node.js</a> framework for building efficient and scalable server-side applications.</p>
-    <p align="center">
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/v/@nestjs/core.svg" alt="NPM Version" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/l/@nestjs/core.svg" alt="Package License" /></a>
-<a href="https://www.npmjs.com/~nestjscore" target="_blank"><img src="https://img.shields.io/npm/dm/@nestjs/common.svg" alt="NPM Downloads" /></a>
-<a href="https://circleci.com/gh/nestjs/nest" target="_blank"><img src="https://img.shields.io/circleci/build/github/nestjs/nest/master" alt="CircleCI" /></a>
-<a href="https://discord.gg/G7Qnnhy" target="_blank"><img src="https://img.shields.io/badge/discord-online-brightgreen.svg" alt="Discord"/></a>
-<a href="https://opencollective.com/nest#backer" target="_blank"><img src="https://opencollective.com/nest/backers/badge.svg" alt="Backers on Open Collective" /></a>
-<a href="https://opencollective.com/nest#sponsor" target="_blank"><img src="https://opencollective.com/nest/sponsors/badge.svg" alt="Sponsors on Open Collective" /></a>
-  <a href="https://paypal.me/kamilmysliwiec" target="_blank"><img src="https://img.shields.io/badge/Donate-PayPal-ff3f59.svg" alt="Donate us"/></a>
-    <a href="https://opencollective.com/nest#sponsor"  target="_blank"><img src="https://img.shields.io/badge/Support%20us-Open%20Collective-41B883.svg" alt="Support us"></a>
-  <a href="https://twitter.com/nestframework" target="_blank"><img src="https://img.shields.io/twitter/follow/nestframework.svg?style=social&label=Follow" alt="Follow us on Twitter"></a>
-</p>
-  <!--[![Backers on Open Collective](https://opencollective.com/nest/backers/badge.svg)](https://opencollective.com/nest#backer)
-  [![Sponsors on Open Collective](https://opencollective.com/nest/sponsors/badge.svg)](https://opencollective.com/nest#sponsor)-->
+## Features
 
-## Description
+- 🚀 **Easy Setup**: Simple configuration with `forRoot()` and `forFeature()` pattern
+- 🔍 **Automatic Worker Discovery**: Automatically discovers and registers workers using decorators
+- 📦 **Workflow Management**: Deploy multiple workflows with separate BPMN files and forms
+- 🎯 **Type-Safe**: Full TypeScript support with type-safe worker handlers
+- 🔗 **Workflow Linking**: Link workers to specific workflows using workflow names
+- 📝 **BPMN & Forms**: Deploy BPMN files and multiple form files per workflow
+- 🛡️ **Error Handling**: Built-in error handling and job completion/failure management
 
-[Nest](https://github.com/nestjs/nest) framework TypeScript starter repository.
-
-## Project setup
+## Installation
 
 ```bash
-$ npm install
+npm install camunda-nestjs
 ```
 
-## Compile and run the project
+## Peer Dependencies
 
-```bash
-# development
-$ npm run start
+- `@nestjs/common`: ^10.0.0 || ^11.0.0
+- `@nestjs/core`: ^10.0.0 || ^11.0.0
+- `reflect-metadata`: ^0.1.13
+- `rxjs`: ^7.2.0
 
-# watch mode
-$ npm run start:dev
+## Quick Start
 
-# production mode
-$ npm run start:prod
+### 1. Configure the Client
+
+In your root module (e.g., `app.module.ts`), configure the Camunda8 client:
+
+```typescript
+import { Module } from '@nestjs/common';
+import { CamundaModule } from 'camunda-nestjs';
+
+@Module({
+  imports: [
+    CamundaModule.forRoot({
+      authStrategy: 'OAUTH',
+      zeebeGrpcAddress: 'grpc://localhost:26500',
+      zeebeRestAddress: 'http://localhost:8088',
+      clientId: 'orchestration',
+      clientSecret: 'secret',
+      oauthUrl:
+        'http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token',
+    }),
+  ],
+})
+export class AppModule {}
 ```
 
-## Run tests
+### 2. Register a Workflow
 
-```bash
-# unit tests
-$ npm run test
+Register your workflow with BPMN and form files:
 
-# e2e tests
-$ npm run test:e2e
-
-# test coverage
-$ npm run test:cov
+```typescript
+@Module({
+  imports: [
+    CamundaModule.forRoot({
+      /* ... */
+    }),
+    CamundaModule.forFeature({
+      workflowName: 'order-workflow',
+      bpmn: './assets/order.bpmn',
+      forms: ['./assets/order.form', './assets/approval.form'], // Can be empty array []
+    }),
+  ],
+})
+export class AppModule {}
 ```
 
-## Deployment
+### 3. Create Worker Handlers
 
-When you're ready to deploy your NestJS application to production, there are some key steps you can take to ensure it runs as efficiently as possible. Check out the [deployment documentation](https://docs.nestjs.com/deployment) for more information.
+Create worker handlers that extend `Camunda8WorkerHandler`:
 
-If you are looking for a cloud-based platform to deploy your NestJS application, check out [Mau](https://mau.nestjs.com), our official platform for deploying NestJS applications on AWS. Mau makes deployment straightforward and fast, requiring just a few simple steps:
+```typescript
+import { Injectable } from '@nestjs/common';
+import { WorkerJob, Camunda8WorkerHandler } from 'camunda-nestjs';
+import type {
+  ZeebeJob,
+  IInputVariables,
+  IOutputVariables,
+  ICustomHeaders,
+  JOB_ACTION_ACKNOWLEDGEMENT,
+} from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
 
-```bash
-$ npm install -g @nestjs/mau
-$ mau deploy
+interface PaymentInput extends IInputVariables {
+  amount: number;
+  currency: string;
+  recipient: string;
+}
+
+interface PaymentOutput extends IOutputVariables {
+  transactionId: string;
+  status: 'success' | 'failed';
+}
+
+@WorkerJob('payment-processing', 'order-workflow')
+@Injectable()
+export class PaymentHandler extends Camunda8WorkerHandler<
+  PaymentInput,
+  PaymentOutput
+> {
+  async handle(
+    job: Readonly<ZeebeJob<PaymentInput, ICustomHeaders, PaymentOutput>>,
+  ): Promise<typeof JOB_ACTION_ACKNOWLEDGEMENT> {
+    const { amount, currency, recipient } = job.variables;
+
+    try {
+      // Process payment logic
+      const transactionId = await this.processPayment(
+        amount,
+        currency,
+        recipient,
+      );
+
+      // Complete the job with output variables
+      return await job.complete({
+        transactionId,
+        status: 'success',
+      });
+    } catch (error) {
+      // Fail the job on error
+      const errorMessage =
+        error instanceof Error ? error.message : 'Payment failed';
+      return await job.fail(errorMessage);
+    }
+  }
+
+  private async processPayment(
+    amount: number,
+    currency: string,
+    recipient: string,
+  ): Promise<string> {
+    // Your payment processing logic here
+    return `txn-${Date.now()}`;
+  }
+}
 ```
 
-With Mau, you can deploy your application in just a few clicks, allowing you to focus on building features rather than managing infrastructure.
+### 4. Register Workers in Module
 
-## Resources
+Add your worker handlers as providers:
 
-Check out a few resources that may come in handy when working with NestJS:
+```typescript
+@Module({
+  imports: [
+    CamundaModule.forRoot({
+      /* ... */
+    }),
+    CamundaModule.forFeature({
+      workflowName: 'order-workflow',
+      bpmn: './assets/order.bpmn',
+      forms: [],
+    }),
+  ],
+  providers: [
+    PaymentHandler, // Your worker handlers
+    // ... other workers
+  ],
+})
+export class AppModule {}
+```
 
-- Visit the [NestJS Documentation](https://docs.nestjs.com) to learn more about the framework.
-- For questions and support, please visit our [Discord channel](https://discord.gg/G7Qnnhy).
-- To dive deeper and get more hands-on experience, check out our official video [courses](https://courses.nestjs.com/).
-- Deploy your application to AWS with the help of [NestJS Mau](https://mau.nestjs.com) in just a few clicks.
-- Visualize your application graph and interact with the NestJS application in real-time using [NestJS Devtools](https://devtools.nestjs.com).
-- Need help with your project (part-time to full-time)? Check out our official [enterprise support](https://enterprise.nestjs.com).
-- To stay in the loop and get updates, follow us on [X](https://x.com/nestframework) and [LinkedIn](https://linkedin.com/company/nestjs).
-- Looking for a job, or have a job to offer? Check out our official [Jobs board](https://jobs.nestjs.com).
+Workers are automatically discovered and registered when the module initializes!
 
-## Support
+## API Reference
 
-Nest is an MIT-licensed open source project. It can grow thanks to the sponsors and support by the amazing backers. If you'd like to join them, please [read more here](https://docs.nestjs.com/support).
+### `CamundaModule.forRoot(options)`
 
-## Stay in touch
+Configure the Camunda8 client connection. Call this once in your root module.
 
-- Author - [Kamil Myśliwiec](https://twitter.com/kammysliwiec)
-- Website - [https://nestjs.com](https://nestjs.com/)
-- Twitter - [@nestframework](https://twitter.com/nestframework)
+**Options:**
+
+- `authStrategy`: `'OAUTH' | 'BASIC' | 'BEARER' | 'COOKIE' | 'NONE'`
+- `zeebeGrpcAddress`: Zeebe gRPC address (e.g., `'grpc://localhost:26500'`)
+- `zeebeRestAddress`: Zeebe REST address (e.g., `'http://localhost:8088'`)
+- `clientId`: OAuth client ID
+- `clientSecret`: OAuth client secret
+- `oauthUrl`: OAuth token URL
+- `tokenCacheDir?`: Optional token cache directory
+- `tokenDiskCacheDisable?`: Optional flag to disable token disk cache
+
+### `CamundaModule.forFeature(options)`
+
+Register a workflow with its BPMN file and workers. Can be called multiple times for different workflows.
+
+**Options:**
+
+- `workflowName`: Unique workflow name to identify this workflow
+- `bpmn`: Path to the BPMN file to deploy
+- `forms`: Array of form file paths (can be empty array `[]`)
+
+### `@WorkerJob(jobType, workflowName)`
+
+Class decorator to mark a class as a Camunda8 worker handler.
+
+**Parameters:**
+
+- `jobType`: The job type this handler processes (must match the task type in your BPMN)
+- `workflowName`: The workflow name this job belongs to (must match `forFeature` workflow name)
+
+### `Camunda8WorkerHandler<TInput, TOutput, TCustomHeaders>`
+
+Abstract base class that all worker handlers must extend.
+
+**Methods:**
+
+- `handle(job)`: Abstract method you must implement. Should return `job.complete()` or `job.fail()`
+
+## Advanced Usage
+
+### Async Configuration
+
+Use `forRootAsync()` and `forFeatureAsync()` for async configuration:
+
+```typescript
+CamundaModule.forRootAsync({
+  useFactory: (config: ConfigService) => ({
+    authStrategy: 'OAUTH',
+    zeebeGrpcAddress: config.get('ZEEBE_GRPC_ADDRESS'),
+    // ... other options
+  }),
+  inject: [ConfigService],
+}),
+
+CamundaModule.forFeatureAsync({
+  useFactory: (config: ConfigService) => ({
+    workflowName: 'order-workflow',
+    bpmn: config.get('ORDER_BPMN_PATH'),
+    forms: [],
+  }),
+  inject: [ConfigService],
+}),
+```
+
+### Multiple Workflows
+
+You can register multiple workflows in the same application:
+
+```typescript
+@Module({
+  imports: [
+    CamundaModule.forRoot({
+      /* ... */
+    }),
+    CamundaModule.forFeature({
+      workflowName: 'order-workflow',
+      bpmn: './assets/order.bpmn',
+      forms: [],
+    }),
+    CamundaModule.forFeature({
+      workflowName: 'invoice-workflow',
+      bpmn: './assets/invoice.bpmn',
+      forms: ['./assets/invoice.form'],
+    }),
+  ],
+  providers: [
+    // Order workflow workers
+    OrderPaymentHandler,
+    OrderShippingHandler,
+    // Invoice workflow workers
+    InvoiceGenerationHandler,
+    InvoiceEmailHandler,
+  ],
+})
+export class AppModule {}
+```
+
+### Using CamundaClientService
+
+Inject `CamundaClientService` to start process instances programmatically:
+
+```typescript
+import { Injectable } from '@nestjs/common';
+import { CamundaClientService } from 'camunda-nestjs';
+
+@Injectable()
+export class OrderService {
+  constructor(private readonly camundaClient: CamundaClientService) {}
+
+  async startOrderProcess(orderData: any) {
+    return await this.camundaClient.createProcessInstance({
+      processDefinitionId: 'process1',
+      variables: orderData,
+    });
+  }
+}
+```
+
+## How It Works
+
+1. **Client Configuration**: `forRoot()` configures the Camunda8 SDK client connection
+2. **Workflow Registration**: `forFeature()` registers a workflow and deploys BPMN/form files
+3. **Worker Discovery**: The module automatically discovers all classes decorated with `@WorkerJob()`
+4. **Worker Registration**: Workers are registered with Zeebe, filtered by workflow name
+5. **Job Processing**: When jobs arrive, the corresponding worker handler processes them
+
+## Type Safety
+
+The library provides full TypeScript support:
+
+```typescript
+interface MyInput extends IInputVariables {
+  userId: string;
+  amount: number;
+}
+
+interface MyOutput extends IOutputVariables {
+  result: string;
+  processed: boolean;
+}
+
+@WorkerJob('my-task', 'my-workflow')
+@Injectable()
+export class MyHandler extends Camunda8WorkerHandler<MyInput, MyOutput> {
+  async handle(job: Readonly<ZeebeJob<MyInput, ICustomHeaders, MyOutput>>) {
+    // job.variables is typed as MyInput
+    // Return type is checked as MyOutput
+    return await job.complete({ result: 'done', processed: true });
+  }
+}
+```
+
+## Examples
+
+See the `examples/` directory in the source code for more complete examples.
 
 ## License
 
-Nest is [MIT licensed](https://github.com/nestjs/nest/blob/master/LICENSE).
+MIT
+
+## Contributing
+
+Contributions are welcome! Please feel free to submit a Pull Request.
+
+## Support
+
+For issues and questions, please open an issue on GitHub.
