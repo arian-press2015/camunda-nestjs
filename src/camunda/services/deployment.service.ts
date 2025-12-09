@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CamundaService } from './camunda.service';
-import { CAMUNDA8_OPTIONS } from '../camunda.constants';
-import type { CamundaOptions } from '../interfaces/camunda-options.interface';
+import { CAMUNDA8_WORKFLOW_OPTIONS } from '../camunda.constants';
+import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.interface';
 
 /**
  * Service responsible for deploying BPMN and form resources to Camunda
@@ -12,8 +12,8 @@ export class DeploymentService {
 
   constructor(
     private readonly CamundaService: CamundaService,
-    @Inject(CAMUNDA8_OPTIONS)
-    private readonly options: CamundaOptions,
+    @Inject(CAMUNDA8_WORKFLOW_OPTIONS)
+    private readonly options: CamundaWorkflowOptions,
   ) {}
 
   /**
@@ -22,14 +22,16 @@ export class DeploymentService {
    */
   async deploy() {
     try {
-      const { bpmn, form } = this.options.workflow;
+      const { bpmn, form, workflowName } = this.options;
       const resourcesToDeploy = [bpmn];
 
       if (form) {
         resourcesToDeploy.push(form);
-        this.logger.log('Deploying BPMN and form resources...');
+        this.logger.log(
+          `[${workflowName}] Deploying BPMN and form resources...`,
+        );
       } else {
-        this.logger.log('Deploying BPMN resources...');
+        this.logger.log(`[${workflowName}] Deploying BPMN resources...`);
       }
 
       const orchestration = this.CamundaService.getOrchestrationClient();
@@ -39,10 +41,15 @@ export class DeploymentService {
       const deployedResources = form
         ? `BPMN (${bpmn}), Form (${form})`
         : `BPMN (${bpmn})`;
-      this.logger.log(`Successfully deployed resources: ${deployedResources}`);
+      this.logger.log(
+        `[${workflowName}] Successfully deployed resources: ${deployedResources}`,
+      );
       return result;
     } catch (error) {
-      this.logger.error('Failed to deploy resources', error);
+      this.logger.error(
+        `[${this.options.workflowName}] Failed to deploy resources`,
+        error,
+      );
       throw error;
     }
   }

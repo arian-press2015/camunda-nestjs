@@ -4,6 +4,7 @@ import type {
   ZeebeJob,
   IInputVariables,
   IOutputVariables,
+  ICustomHeaders,
 } from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
 
 interface ChargePaymentInput extends IInputVariables {
@@ -17,15 +18,17 @@ interface ChargePaymentOutput extends IOutputVariables {
   charged: boolean;
 }
 
-@WorkerJob('charge-payment')
+@WorkerJob('charge-payment', 'order-workflow')
 @Injectable()
 export class ChargePaymentWorker extends Camunda8WorkerHandler<
   ChargePaymentInput,
   ChargePaymentOutput
 > {
   async handle(
-    job: Readonly<ZeebeJob<ChargePaymentInput, object, ChargePaymentOutput>>,
-  ): Promise<'JOB_ACTION_ACKNOWLEDGEMENT'> {
+    job: Readonly<
+      ZeebeJob<ChargePaymentInput, ICustomHeaders, ChargePaymentOutput>
+    >,
+  ) {
     const { orderId, amount, paymentMethod } = job.variables;
 
     console.log(

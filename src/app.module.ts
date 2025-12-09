@@ -9,18 +9,17 @@ import { ShipItemsWorker } from './workers/ship-items.worker';
 @Module({
   imports: [
     CamundaModule.forRoot({
-      client: {
-        authStrategy: 'OAUTH',
-        zeebeGrpcAddress: 'grpc://localhost:26500',
-        zeebeRestAddress: 'http://localhost:8088',
-        clientId: 'orchestration',
-        clientSecret: 'secret',
-        oauthUrl:
-          'http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token',
-      },
-      workflow: {
-        bpmn: './assets/order.bpmn',
-      },
+      authStrategy: 'OAUTH',
+      zeebeGrpcAddress: 'grpc://localhost:26500',
+      zeebeRestAddress: 'http://localhost:8088',
+      clientId: 'orchestration',
+      clientSecret: 'secret',
+      oauthUrl:
+        'http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token',
+    }),
+    CamundaModule.forFeature({
+      workflowName: 'order-workflow',
+      bpmn: './assets/order.bpmn',
     }),
   ],
   controllers: [AppController],

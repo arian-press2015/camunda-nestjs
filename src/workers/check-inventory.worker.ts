@@ -4,6 +4,7 @@ import type {
   ZeebeJob,
   IInputVariables,
   IOutputVariables,
+  ICustomHeaders,
 } from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
 
 interface CheckInventoryInput extends IInputVariables {
@@ -15,15 +16,17 @@ interface CheckInventoryOutput extends IOutputVariables {
   available: boolean;
 }
 
-@WorkerJob('check-inventory')
+@WorkerJob('check-inventory', 'order-workflow')
 @Injectable()
 export class CheckInventoryWorker extends Camunda8WorkerHandler<
   CheckInventoryInput,
   CheckInventoryOutput
 > {
   async handle(
-    job: Readonly<ZeebeJob<CheckInventoryInput, object, CheckInventoryOutput>>,
-  ): Promise<'JOB_ACTION_ACKNOWLEDGEMENT'> {
+    job: Readonly<
+      ZeebeJob<CheckInventoryInput, ICustomHeaders, CheckInventoryOutput>
+    >,
+  ) {
     const { orderId, items } = job.variables;
 
     console.log(

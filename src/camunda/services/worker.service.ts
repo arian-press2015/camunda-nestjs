@@ -1,11 +1,15 @@
-import { Injectable, OnModuleDestroy, Logger } from '@nestjs/common';
+import { Injectable, OnModuleDestroy, Logger, Inject } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import type { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { CamundaService } from './camunda.service';
-import { WORKER_JOB_METADATA_KEY } from '../camunda.constants';
+import {
+  WORKER_JOB_METADATA_KEY,
+  CAMUNDA8_WORKFLOW_OPTIONS,
+} from '../camunda.constants';
 import 'reflect-metadata';
 import { Camunda8WorkerJobMetadata } from '../interfaces/camunda-worker-job-metadata.interface';
 import { Camunda8WorkerHandler } from '../base/camunda-worker-handler.base';
+import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.interface';
 import type { ZeebeGrpcClient } from '@camunda8/sdk/dist/zeebe/zb/ZeebeGrpcClient';
 import type { ZBWorker } from '@camunda8/sdk/dist/zeebe';
 import type {
@@ -27,10 +31,12 @@ export class WorkerService implements OnModuleDestroy {
   constructor(
     private readonly CamundaService: CamundaService,
     private readonly discoveryService: DiscoveryService,
+    @Inject(CAMUNDA8_WORKFLOW_OPTIONS)
+    private readonly workflowOptions: CamundaWorkflowOptions,
   ) {}
 
   /**
-   * Register all worker handlers discovered in the application.
+   * Register all worker handlers discovered in the application that belong to this workflow.
    * This method is called by CoordinatorService after deployment.
    */
   registerWorkers(): void {
@@ -56,6 +62,11 @@ export class WorkerService implements OnModuleDestroy {
         ) as Camunda8WorkerJobMetadata | undefined;
 
         if (!metadata) {
+          continue;
+        }
+
+        // Only register workers that belong to this workflow
+        if (metadata.workflowName !== this.workflowOptions.workflowName) {
           continue;
         }
 
@@ -99,16 +110,28 @@ export class WorkerService implements OnModuleDestroy {
             ZeebeJob<IInputVariables, ICustomHeaders, IOutputVariables>
           >,
         ) => {
-          this.logger.debug(`Processing job ${jobType} with key ${job.key}`);
-          return await handler.handle(job);
+          this.logger.debug(
+            `[${this.workflowOptions.workflowName}] Processing job ${jobType} with key ${job.key}`,
+          );
+          try {
+            return await handler.handle(job);
+          } catch (error) {
+            this.logger.error(
+              `[${this.workflowOptions.workflowName}] Error processing job ${jobType} with key ${job.key}`,
+              error,
+            );
+            throw error;
+          }
         },
       });
 
       this.workers.push(worker);
-      this.logger.log(`Registered worker for job type: ${jobType}`);
+      this.logger.log(
+        `[${this.workflowOptions.workflowName}] Registered worker for job type: ${jobType}`,
+      );
     } catch (error) {
       this.logger.error(
-        `Failed to register worker for job type: ${jobType}`,
+        `[${this.workflowOptions.workflowName}] Failed to register worker for job type: ${jobType}`,
         error,
       );
     }

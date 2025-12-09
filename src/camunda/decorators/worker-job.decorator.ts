@@ -4,24 +4,27 @@ import { Camunda8WorkerJobMetadata } from '../interfaces/camunda-worker-job-meta
 
 /**
  * Class decorator to mark a class as a Camunda8 worker handler.
- * The class must implement Camunda8WorkerHandler interface.
+ * The class must extend Camunda8WorkerHandler base class.
  *
  * @param jobType The job type this handler processes
+ * @param workflowName The workflow name this job belongs to (must match forFeature workflowName)
  * @example
  * ```typescript
- * @WorkerJob('payment-processing')
- * export class PaymentHandler implements Camunda8WorkerHandler<PaymentInput, PaymentOutput> {
- *   async handle(job: ZeebeJob<PaymentInput, {}, PaymentOutput>) {
- *     // Process job
- *     return await job.complete({ result: 'success' });
+ * @WorkerJob('payment-processing', 'order-workflow')
+ * @Injectable()
+ * export class PaymentHandler extends Camunda8WorkerHandler<PaymentInput, PaymentOutput> {
+ *   async handle(job: Readonly<ZeebeJob<PaymentInput, {}, PaymentOutput>>) {
+ *     // Process job and return output variables or throw an error
+ *     return { result: 'success' };
  *   }
  * }
  * ```
  */
-export function WorkerJob(jobType: string) {
+export function WorkerJob(jobType: string, workflowName: string) {
   return function <T extends { new (...args: any[]): object }>(target: T) {
     const metadata: Camunda8WorkerJobMetadata = {
       jobType,
+      workflowName,
     };
     Reflect.defineMetadata(WORKER_JOB_METADATA_KEY, metadata, target);
     return target;

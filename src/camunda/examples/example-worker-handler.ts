@@ -9,6 +9,8 @@ import type {
   ZeebeJob,
   IInputVariables,
   IOutputVariables,
+  ICustomHeaders,
+  JOB_ACTION_ACKNOWLEDGEMENT,
 } from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
 
 // Example: Define custom input/output types
@@ -30,15 +32,15 @@ interface PaymentOutput extends IOutputVariables {
  * 2. Extend Camunda8WorkerHandler base class
  * 3. Implement the handle() method that returns job.complete() or job.fail()
  */
-@WorkerJob('payment-processing')
+@WorkerJob('payment-processing', 'order-workflow')
 @Injectable()
 export class PaymentHandler extends Camunda8WorkerHandler<
   PaymentInput,
   PaymentOutput
 > {
   async handle(
-    job: Readonly<ZeebeJob<PaymentInput, object, PaymentOutput>>,
-  ): Promise<'JOB_ACTION_ACKNOWLEDGEMENT'> {
+    job: Readonly<ZeebeJob<PaymentInput, ICustomHeaders, PaymentOutput>>,
+  ): Promise<typeof JOB_ACTION_ACKNOWLEDGEMENT> {
     try {
       const { amount, currency, recipient } = job.variables;
 

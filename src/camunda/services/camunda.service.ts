@@ -1,7 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Camunda8 } from '@camunda8/sdk';
 import type { CamundaClientLoose } from '@camunda8/orchestration-cluster-api';
-import type { CamundaOptions } from '../interfaces/camunda-options.interface';
+import type { CamundaClientOptions } from '../interfaces/camunda-options.interface';
 import { mapToSdkConfiguration } from '../interfaces/camunda-options.interface';
 import { CAMUNDA8_OPTIONS } from '../camunda.constants';
 
@@ -12,7 +12,7 @@ export class CamundaService {
 
   constructor(
     @Inject(CAMUNDA8_OPTIONS)
-    private readonly options: CamundaOptions,
+    private readonly options: CamundaClientOptions,
   ) {
     const sdkConfig = mapToSdkConfiguration(options);
     this.camunda = new Camunda8(sdkConfig);
