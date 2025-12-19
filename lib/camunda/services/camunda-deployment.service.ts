@@ -27,31 +27,20 @@ export class CamundaDeploymentService {
 
       if (forms.length > 0) {
         resourcesToDeploy.push(...forms);
-        this.logger.log(
-          `[${workflowName}] Deploying BPMN and ${forms.length} form resource(s)...`,
-        );
+        this.logger.log(`[${workflowName}] Deploying BPMN and ${forms.length} form resource(s)...`);
       } else {
         this.logger.log(`[${workflowName}] Deploying BPMN resources...`);
       }
 
       const orchestration = this.CamundaClientService.getOrchestrationClient();
-      const result =
-        await orchestration.deployResourcesFromFiles(resourcesToDeploy);
+      const result = await orchestration.deployResourcesFromFiles(resourcesToDeploy);
 
-      const formResources =
-        forms.length > 0
-          ? `, ${forms.length} form(s): ${forms.join(', ')}`
-          : '';
+      const formResources = forms.length > 0 ? `, ${forms.length} form(s): ${forms.join(', ')}` : '';
       const deployedResources = `BPMN (${bpmn})${formResources}`;
-      this.logger.log(
-        `[${workflowName}] Successfully deployed resources: ${deployedResources}`,
-      );
+      this.logger.log(`[${workflowName}] Successfully deployed resources: ${deployedResources}`);
       return result;
     } catch (error) {
-      this.logger.error(
-        `[${this.options.workflowName}] Failed to deploy resources`,
-        error,
-      );
+      this.logger.error(`[${this.options.workflowName}] Failed to deploy resources`, error);
       throw error;
     }
   }

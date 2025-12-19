@@ -22,9 +22,7 @@ export class Camunda8WorkerJobMetadataDTO {
   @MinLength(1, { message: 'workflowName cannot be empty' })
   workflowName: string;
 
-  static fromCamunda8WorkerJobMetadata(
-    metadata: Camunda8WorkerJobMetadata,
-  ): Camunda8WorkerJobMetadataDTO {
+  static fromCamunda8WorkerJobMetadata(metadata: Camunda8WorkerJobMetadata): Camunda8WorkerJobMetadataDTO {
     return plainToInstance(Camunda8WorkerJobMetadataDTO, metadata);
   }
 }

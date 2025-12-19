@@ -24,10 +24,7 @@ export class CamundaClientService {
    * @param params - The parameters for creating a process instance
    * @returns The process instance
    */
-  async createProcessInstance(params: {
-    processDefinitionId: string;
-    variables?: Record<string, any>;
-  }) {
+  async createProcessInstance(params: { processDefinitionId: string; variables?: Record<string, any> }) {
     return await this.orchestration.createProcessInstance({
       processDefinitionId: params.processDefinitionId,
       variables: params.variables || {},

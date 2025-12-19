@@ -25,9 +25,7 @@ export class CamundaCoordinatorService implements OnModuleInit {
    * 2. Register workers
    */
   async onModuleInit(): Promise<void> {
-    this.logger.log(
-      `[${this.workflowOptions.workflowName}] Starting Camunda8 workflow initialization...`,
-    );
+    this.logger.log(`[${this.workflowOptions.workflowName}] Starting Camunda8 workflow initialization...`);
 
     try {
       // Step 1: Deploy resources first
@@ -36,14 +34,9 @@ export class CamundaCoordinatorService implements OnModuleInit {
       // Step 2: Register workers after deployment completes
       await this.workerService.registerWorkers();
 
-      this.logger.log(
-        `[${this.workflowOptions.workflowName}] Camunda8 workflow initialization completed`,
-      );
+      this.logger.log(`[${this.workflowOptions.workflowName}] Camunda8 workflow initialization completed`);
     } catch (error) {
-      this.logger.error(
-        `[${this.workflowOptions.workflowName}] Failed to initialize Camunda8 workflow`,
-        error,
-      );
+      this.logger.error(`[${this.workflowOptions.workflowName}] Failed to initialize Camunda8 workflow`, error);
       throw error;
     }
   }

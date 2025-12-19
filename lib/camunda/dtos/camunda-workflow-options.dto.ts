@@ -29,9 +29,7 @@ export class CamundaWorkflowOptionsDTO {
   @IsString({ each: true, message: 'Each form path must be a string' })
   forms: string[];
 
-  static fromCamundaWorkflowOptions(
-    options: CamundaWorkflowOptions,
-  ): CamundaWorkflowOptionsDTO {
+  static fromCamundaWorkflowOptions(options: CamundaWorkflowOptions): CamundaWorkflowOptionsDTO {
     return plainToInstance(CamundaWorkflowOptionsDTO, options);
   }
 }

@@ -34,10 +34,7 @@ interface PaymentOutput extends IOutputVariables {
  */
 @WorkerJob('payment-processing', 'order-workflow')
 @Injectable()
-export class PaymentHandler extends Camunda8WorkerHandler<
-  PaymentInput,
-  PaymentOutput
-> {
+export class PaymentHandler extends Camunda8WorkerHandler<PaymentInput, PaymentOutput> {
   async handle(
     job: Readonly<ZeebeJob<PaymentInput, ICustomHeaders, PaymentOutput>>,
   ): Promise<typeof JOB_ACTION_ACKNOWLEDGEMENT> {
@@ -45,11 +42,7 @@ export class PaymentHandler extends Camunda8WorkerHandler<
       const { amount, currency, recipient } = job.variables;
 
       // Process payment logic here
-      const transactionId = await this.processPayment(
-        amount,
-        currency,
-        recipient,
-      );
+      const transactionId = await this.processPayment(amount, currency, recipient);
 
       // Must return the result of job.complete() or job.fail()
       return await job.complete({
@@ -58,17 +51,12 @@ export class PaymentHandler extends Camunda8WorkerHandler<
       });
     } catch (error) {
       // Handle errors by calling job.fail()
-      const errorMessage =
-        error instanceof Error ? error.message : 'Payment processing failed';
+      const errorMessage = error instanceof Error ? error.message : 'Payment processing failed';
       return await job.fail(errorMessage);
     }
   }
 
-  private async processPayment(
-    amount: number,
-    currency: string,
-    recipient: string,
-  ): Promise<string> {
+  private async processPayment(amount: number, currency: string, recipient: string): Promise<string> {
     // Simulate payment processing
     await new Promise((resolve) => setTimeout(resolve, 1000));
     return `txn-${Date.now()}-${amount}-${currency}-${recipient}`;

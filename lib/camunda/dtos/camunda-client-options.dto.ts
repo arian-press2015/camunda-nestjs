@@ -1,11 +1,4 @@
-import {
-  IsEnum,
-  IsString,
-  IsUrl,
-  IsOptional,
-  IsNotEmpty,
-  MinLength,
-} from 'class-validator';
+import { IsEnum, IsString, IsUrl, IsOptional, IsNotEmpty, MinLength } from 'class-validator';
 import { Camunda8ClientConfiguration } from '@camunda8/sdk/dist/lib';
 import { CamundaClientOptions } from '../interfaces/camunda-options.interface';
 import { plainToInstance } from 'class-transformer';
@@ -34,8 +27,7 @@ export class CamundaClientOptionsDTO {
       require_tld: false,
     },
     {
-      message:
-        'zeebeGrpcAddress must be a valid gRPC URL (e.g., grpc://localhost:26500)',
+      message: 'zeebeGrpcAddress must be a valid gRPC URL (e.g., grpc://localhost:26500)',
     },
   )
   zeebeGrpcAddress: string;
@@ -52,8 +44,7 @@ export class CamundaClientOptionsDTO {
       require_tld: false,
     },
     {
-      message:
-        'zeebeRestAddress must be a valid HTTP/HTTPS URL (e.g., http://localhost:8088)',
+      message: 'zeebeRestAddress must be a valid HTTP/HTTPS URL (e.g., http://localhost:8088)',
     },
   )
   zeebeRestAddress: string;
@@ -120,9 +111,7 @@ export class CamundaClientOptionsDTO {
     };
   }
 
-  static fromCamundaClientOptions(
-    options: CamundaClientOptions,
-  ): CamundaClientOptionsDTO {
+  static fromCamundaClientOptions(options: CamundaClientOptions): CamundaClientOptionsDTO {
     return plainToInstance(CamundaClientOptionsDTO, options);
   }
 }

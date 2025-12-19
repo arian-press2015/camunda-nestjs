@@ -2,10 +2,7 @@ import { Injectable, OnModuleDestroy, Logger, Inject } from '@nestjs/common';
 import { DiscoveryService } from '@nestjs/core';
 import type { InstanceWrapper } from '@nestjs/core/injector/instance-wrapper';
 import { CamundaClientService } from './camunda-client.service';
-import {
-  WORKER_JOB_METADATA_KEY,
-  CAMUNDA8_WORKFLOW_OPTIONS,
-} from '../camunda.constants';
+import { WORKER_JOB_METADATA_KEY, CAMUNDA8_WORKFLOW_OPTIONS } from '../camunda.constants';
 import 'reflect-metadata';
 import { Camunda8WorkerJobMetadataDTO } from '../dtos/camunda-worker-job-metadata.dto';
 import { Camunda8WorkerHandler } from '../base/camunda-worker-handler.base';
@@ -23,11 +20,7 @@ import { validateWorkerJobMetadata } from '../utils/validation.util';
 @Injectable()
 export class CamundaWorkerService implements OnModuleDestroy {
   private readonly logger = new Logger(CamundaWorkerService.name);
-  private readonly workers: ZBWorker<
-    IInputVariables,
-    ICustomHeaders,
-    IOutputVariables
-  >[] = [];
+  private readonly workers: ZBWorker<IInputVariables, ICustomHeaders, IOutputVariables>[] = [];
 
   constructor(
     private readonly CamundaClientService: CamundaClientService,
@@ -57,10 +50,9 @@ export class CamundaWorkerService implements OnModuleDestroy {
 
         // Get metadata from the class constructor (class decorator)
         const constructor = instance.constructor;
-        const metadata = Reflect.getMetadata(
-          WORKER_JOB_METADATA_KEY,
-          constructor,
-        ) as Camunda8WorkerJobMetadataDTO | undefined;
+        const metadata = Reflect.getMetadata(WORKER_JOB_METADATA_KEY, constructor) as
+          | Camunda8WorkerJobMetadataDTO
+          | undefined;
 
         if (!metadata) {
           continue;
@@ -78,18 +70,12 @@ export class CamundaWorkerService implements OnModuleDestroy {
           continue;
         }
 
-        await validateWorkerJobMetadata(
-          Camunda8WorkerJobMetadataDTO.fromCamunda8WorkerJobMetadata(metadata),
-        );
+        await validateWorkerJobMetadata(Camunda8WorkerJobMetadataDTO.fromCamunda8WorkerJobMetadata(metadata));
 
         this.registerWorker(
           zeebeClient,
           metadata.jobType,
-          instance as Camunda8WorkerHandler<
-            IInputVariables,
-            IOutputVariables,
-            ICustomHeaders
-          >,
+          instance as Camunda8WorkerHandler<IInputVariables, IOutputVariables, ICustomHeaders>,
         );
       }
     } catch (error) {
@@ -101,23 +87,13 @@ export class CamundaWorkerService implements OnModuleDestroy {
   private registerWorker(
     zeebeClient: ZeebeGrpcClient,
     jobType: string,
-    handler: Camunda8WorkerHandler<
-      IInputVariables,
-      IOutputVariables,
-      ICustomHeaders
-    >,
+    handler: Camunda8WorkerHandler<IInputVariables, IOutputVariables, ICustomHeaders>,
   ): void {
     try {
       const worker = zeebeClient.createWorker({
         taskType: jobType,
-        taskHandler: async (
-          job: Readonly<
-            ZeebeJob<IInputVariables, ICustomHeaders, IOutputVariables>
-          >,
-        ) => {
-          this.logger.debug(
-            `[${this.workflowOptions.workflowName}] Processing job ${jobType} with key ${job.key}`,
-          );
+        taskHandler: async (job: Readonly<ZeebeJob<IInputVariables, ICustomHeaders, IOutputVariables>>) => {
+          this.logger.debug(`[${this.workflowOptions.workflowName}] Processing job ${jobType} with key ${job.key}`);
           try {
             return await handler.handle(job);
           } catch (error) {
@@ -131,9 +107,7 @@ export class CamundaWorkerService implements OnModuleDestroy {
       });
 
       this.workers.push(worker);
-      this.logger.log(
-        `[${this.workflowOptions.workflowName}] Registered worker for job type: ${jobType}`,
-      );
+      this.logger.log(`[${this.workflowOptions.workflowName}] Registered worker for job type: ${jobType}`);
     } catch (error) {
       this.logger.error(
         `[${this.workflowOptions.workflowName}] Failed to register worker for job type: ${jobType}`,

@@ -9,9 +9,7 @@ import { Camunda8WorkerJobMetadataDTO } from '../dtos/camunda-worker-job-metadat
  * @param options - The options to validate
  * @throws {CamundaConfigurationError} If validation fails
  */
-export async function validateClientOptions(
-  options: CamundaClientOptionsDTO,
-): Promise<void> {
+export async function validateClientOptions(options: CamundaClientOptionsDTO): Promise<void> {
   const errors = await validate(options, {
     whitelist: true,
     forbidNonWhitelisted: false,
@@ -32,9 +30,7 @@ export async function validateClientOptions(
  * @param options - The options to validate
  * @throws {CamundaConfigurationError} If validation fails
  */
-export async function validateWorkflowOptions(
-  options: CamundaWorkflowOptionsDTO,
-): Promise<void> {
+export async function validateWorkflowOptions(options: CamundaWorkflowOptionsDTO): Promise<void> {
   const errors = await validate(options, {
     whitelist: true,
     forbidNonWhitelisted: false,
@@ -50,9 +46,7 @@ export async function validateWorkflowOptions(
   }
 }
 
-export async function validateWorkerJobMetadata(
-  metadata: Camunda8WorkerJobMetadataDTO,
-): Promise<void> {
+export async function validateWorkerJobMetadata(metadata: Camunda8WorkerJobMetadataDTO): Promise<void> {
   const errors = await validate(metadata, {
     whitelist: true,
     forbidNonWhitelisted: false,

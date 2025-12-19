@@ -71,9 +71,7 @@ export interface CamundaOptions {
 /**
  * Maps CamundaClientOptions to SDK's Camunda8ClientConfiguration
  */
-export function mapToSdkConfiguration(
-  options: CamundaClientOptions,
-): Camunda8ClientConfiguration {
+export function mapToSdkConfiguration(options: CamundaClientOptions): Camunda8ClientConfiguration {
   return {
     CAMUNDA_AUTH_STRATEGY: options.authStrategy,
     ZEEBE_GRPC_ADDRESS: options.zeebeGrpcAddress,
