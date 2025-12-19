@@ -2,7 +2,7 @@ import { Injectable, Logger, OnModuleInit, Inject } from '@nestjs/common';
 import { CamundaDeploymentService } from './camunda-deployment.service';
 import { CamundaWorkerService } from './camunda-worker.service';
 import { CAMUNDA8_WORKFLOW_OPTIONS } from '../camunda.constants';
-import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.interface';
+import { CamundaWorkflowOptionsDTO } from '../dtos/camunda-workflow-options.dto';
 
 /**
  * Coordinator service that orchestrates the initialization order of
@@ -16,7 +16,7 @@ export class CamundaCoordinatorService implements OnModuleInit {
     private readonly deploymentService: CamundaDeploymentService,
     private readonly workerService: CamundaWorkerService,
     @Inject(CAMUNDA8_WORKFLOW_OPTIONS)
-    private readonly workflowOptions: CamundaWorkflowOptions,
+    private readonly workflowOptions: CamundaWorkflowOptionsDTO,
   ) {}
 
   /**
@@ -34,7 +34,7 @@ export class CamundaCoordinatorService implements OnModuleInit {
       await this.deploymentService.deploy();
 
       // Step 2: Register workers after deployment completes
-      this.workerService.registerWorkers();
+      await this.workerService.registerWorkers();
 
       this.logger.log(
         `[${this.workflowOptions.workflowName}] Camunda8 workflow initialization completed`,

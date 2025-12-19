@@ -4,14 +4,20 @@ import { CamundaClientService } from './services/camunda-client.service';
 import { CamundaWorkerService } from './services/camunda-worker.service';
 import { CamundaDeploymentService } from './services/camunda-deployment.service';
 import { CamundaCoordinatorService } from './services/camunda-coordinator.service';
-import type {
-  CamundaClientOptions,
-  CamundaWorkflowOptions,
-} from './interfaces/camunda-options.interface';
+import {
+  validateClientOptions,
+  validateWorkflowOptions,
+} from './utils/validation.util';
 import {
   CAMUNDA8_OPTIONS,
   CAMUNDA8_WORKFLOW_OPTIONS,
 } from './camunda.constants';
+import {
+  CamundaClientOptions,
+  CamundaWorkflowOptions,
+} from './interfaces/camunda-options.interface';
+import { CamundaClientOptionsDTO } from './dtos/camunda-client-options.dto';
+import { CamundaWorkflowOptionsDTO } from './dtos/camunda-workflow-options.dto';
 
 @Global()
 @Module({})
@@ -39,7 +45,12 @@ export class CamundaModule {
       providers: [
         {
           provide: CAMUNDA8_OPTIONS,
-          useValue: options,
+          useFactory: async () => {
+            const dto =
+              CamundaClientOptionsDTO.fromCamundaClientOptions(options);
+            await validateClientOptions(dto);
+            return dto;
+          },
         },
         CamundaClientService,
         DiscoveryService,
@@ -76,7 +87,13 @@ export class CamundaModule {
       providers: [
         {
           provide: CAMUNDA8_OPTIONS,
-          useFactory: options.useFactory,
+          useFactory: async (...args: unknown[]) => {
+            const clientOptions = await options.useFactory(args);
+            const dto =
+              CamundaClientOptionsDTO.fromCamundaClientOptions(clientOptions);
+            await validateClientOptions(dto);
+            return dto;
+          },
           inject: options.inject || [],
         },
         CamundaClientService,
@@ -106,7 +123,12 @@ export class CamundaModule {
       providers: [
         {
           provide: CAMUNDA8_WORKFLOW_OPTIONS,
-          useValue: options,
+          useFactory: async () => {
+            const dto =
+              CamundaWorkflowOptionsDTO.fromCamundaWorkflowOptions(options);
+            await validateWorkflowOptions(dto);
+            return dto;
+          },
         },
         CamundaDeploymentService,
         CamundaWorkerService,
@@ -144,7 +166,15 @@ export class CamundaModule {
       providers: [
         {
           provide: CAMUNDA8_WORKFLOW_OPTIONS,
-          useFactory: options.useFactory,
+          useFactory: async (...args: unknown[]) => {
+            const workflowOptions = await options.useFactory(args);
+            const dto =
+              CamundaWorkflowOptionsDTO.fromCamundaWorkflowOptions(
+                workflowOptions,
+              );
+            await validateWorkflowOptions(dto);
+            return dto;
+          },
           inject: options.inject || [],
         },
         CamundaDeploymentService,

@@ -1,8 +1,7 @@
 import { Injectable, Inject } from '@nestjs/common';
 import { Camunda8 } from '@camunda8/sdk';
 import type { CamundaClientLoose } from '@camunda8/orchestration-cluster-api';
-import type { CamundaClientOptions } from '../interfaces/camunda-options.interface';
-import { mapToSdkConfiguration } from '../interfaces/camunda-options.interface';
+import { CamundaClientOptionsDTO } from '../dtos/camunda-client-options.dto';
 import { CAMUNDA8_OPTIONS } from '../camunda.constants';
 
 @Injectable()
@@ -12,9 +11,9 @@ export class CamundaClientService {
 
   constructor(
     @Inject(CAMUNDA8_OPTIONS)
-    private readonly options: CamundaClientOptions,
+    private readonly options: CamundaClientOptionsDTO,
   ) {
-    const sdkConfig = mapToSdkConfiguration(options);
+    const sdkConfig = options.toSdkConfiguration();
     this.camunda = new Camunda8(sdkConfig);
 
     this.orchestration = this.camunda.getOrchestrationClusterApiClientLoose();

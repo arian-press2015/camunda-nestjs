@@ -1,6 +1,6 @@
 import 'reflect-metadata';
 import { WORKER_JOB_METADATA_KEY } from '../camunda.constants';
-import { Camunda8WorkerJobMetadata } from '../interfaces/camunda-worker-job-metadata.interface';
+import { Camunda8WorkerJobMetadataDTO } from '../dtos/camunda-worker-job-metadata.dto';
 
 /**
  * Class decorator to mark a class as a Camunda8 worker handler.
@@ -22,7 +22,7 @@ import { Camunda8WorkerJobMetadata } from '../interfaces/camunda-worker-job-meta
  */
 export function WorkerJob(jobType: string, workflowName: string) {
   return function <T extends { new (...args: any[]): object }>(target: T) {
-    const metadata: Camunda8WorkerJobMetadata = {
+    const metadata: Camunda8WorkerJobMetadataDTO = {
       jobType,
       workflowName,
     };

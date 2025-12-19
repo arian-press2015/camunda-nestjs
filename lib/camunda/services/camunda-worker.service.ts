@@ -7,9 +7,9 @@ import {
   CAMUNDA8_WORKFLOW_OPTIONS,
 } from '../camunda.constants';
 import 'reflect-metadata';
-import { Camunda8WorkerJobMetadata } from '../interfaces/camunda-worker-job-metadata.interface';
+import { Camunda8WorkerJobMetadataDTO } from '../dtos/camunda-worker-job-metadata.dto';
 import { Camunda8WorkerHandler } from '../base/camunda-worker-handler.base';
-import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.interface';
+import { CamundaWorkflowOptionsDTO } from '../dtos/camunda-workflow-options.dto';
 import type { ZeebeGrpcClient } from '@camunda8/sdk/dist/zeebe/zb/ZeebeGrpcClient';
 import type { ZBWorker } from '@camunda8/sdk/dist/zeebe';
 import type {
@@ -18,6 +18,7 @@ import type {
   IOutputVariables,
   ZeebeJob,
 } from '@camunda8/sdk/dist/zeebe/lib/interfaces-1.0';
+import { validateWorkerJobMetadata } from '../utils/validation.util';
 
 @Injectable()
 export class CamundaWorkerService implements OnModuleDestroy {
@@ -32,14 +33,14 @@ export class CamundaWorkerService implements OnModuleDestroy {
     private readonly CamundaClientService: CamundaClientService,
     private readonly discoveryService: DiscoveryService,
     @Inject(CAMUNDA8_WORKFLOW_OPTIONS)
-    private readonly workflowOptions: CamundaWorkflowOptions,
+    private readonly workflowOptions: CamundaWorkflowOptionsDTO,
   ) {}
 
   /**
    * Register all worker handlers discovered in the application that belong to this workflow.
    * This method is called by CamundaCoordinatorService after deployment.
    */
-  registerWorkers(): void {
+  async registerWorkers(): Promise<void> {
     try {
       const camunda8Client = this.CamundaClientService.getCamunda8Client();
       const zeebeClient = camunda8Client.getZeebeGrpcApiClient();
@@ -59,7 +60,7 @@ export class CamundaWorkerService implements OnModuleDestroy {
         const metadata = Reflect.getMetadata(
           WORKER_JOB_METADATA_KEY,
           constructor,
-        ) as Camunda8WorkerJobMetadata | undefined;
+        ) as Camunda8WorkerJobMetadataDTO | undefined;
 
         if (!metadata) {
           continue;
@@ -76,6 +77,10 @@ export class CamundaWorkerService implements OnModuleDestroy {
           );
           continue;
         }
+
+        await validateWorkerJobMetadata(
+          Camunda8WorkerJobMetadataDTO.fromCamunda8WorkerJobMetadata(metadata),
+        );
 
         this.registerWorker(
           zeebeClient,

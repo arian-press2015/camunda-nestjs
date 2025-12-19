@@ -1,7 +1,7 @@
 import { Injectable, Inject, Logger } from '@nestjs/common';
 import { CamundaClientService } from './camunda-client.service';
 import { CAMUNDA8_WORKFLOW_OPTIONS } from '../camunda.constants';
-import type { CamundaWorkflowOptions } from '../interfaces/camunda-options.interface';
+import { CamundaWorkflowOptionsDTO } from '../dtos/camunda-workflow-options.dto';
 
 /**
  * Service responsible for deploying BPMN and form resources to Camunda
@@ -13,7 +13,7 @@ export class CamundaDeploymentService {
   constructor(
     private readonly CamundaClientService: CamundaClientService,
     @Inject(CAMUNDA8_WORKFLOW_OPTIONS)
-    private readonly options: CamundaWorkflowOptions,
+    private readonly options: CamundaWorkflowOptionsDTO,
   ) {}
 
   /**
