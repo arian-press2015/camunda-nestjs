@@ -321,6 +321,49 @@ export class MyHandler extends Camunda8WorkerHandler<MyInput, MyOutput> {
 }
 ```
 
+## Troubleshooting
+
+### BPMN/Form files not found
+
+**Problem**: You get file not found errors when deploying BPMN or form files.
+
+**Solution 1**: Use `path.join()` with `__dirname` to construct absolute paths:
+
+```typescript
+import { join } from 'path';
+
+CamundaModule.forFeature({
+  workflowName: 'order-workflow',
+  bpmn: join(__dirname, 'assets', 'order.bpmn'),
+  forms: [join(__dirname, 'assets', 'order.form')],
+});
+```
+
+**Solution 2**: Configure `nest-cli.json` to copy assets to the `dist` folder during build:
+
+```json
+{
+  "$schema": "https://json.schemastore.org/nest-cli",
+  "collection": "@nestjs/schematics",
+  "sourceRoot": "src",
+  "compilerOptions": {
+    "deleteOutDir": true,
+    "assets": [
+      {
+        "include": "**/*.bpmn",
+        "outDir": "dist"
+      },
+      {
+        "include": "**/*.form",
+        "outDir": "dist"
+      }
+    ]
+  }
+}
+```
+
+This ensures your BPMN and form files are copied to the `dist` directory when you run `npm run build`.
+
 ## Examples
 
 See the `examples/` directory in the source code for more complete examples.
