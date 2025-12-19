@@ -1,6 +1,14 @@
 # camunda-nestjs
 
+[![npm version](https://img.shields.io/npm/v/camunda-nestjs)](https://www.npmjs.com/package/camunda-nestjs)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+![Status](https://img.shields.io/badge/status-beta-orange)
+
 A powerful NestJS module for integrating Camunda8 workflow engine with automatic worker discovery, workflow management, and seamless BPMN deployment.
+
+> ⚠️ **Beta Notice**: This package is under active development. The API may change between minor versions until we reach `1.0.0`. We recommend pinning to a specific version for production use.
+>
+> Found a bug or have a suggestion? Please [open an issue](https://github.com/arian-press2015/camunda-nestjs/issues) – your feedback helps us improve!
 
 ## Features
 
@@ -22,7 +30,9 @@ npm install camunda-nestjs
 
 - `@nestjs/common`: ^10.0.0 || ^11.0.0
 - `@nestjs/core`: ^10.0.0 || ^11.0.0
-- `reflect-metadata`: ^0.1.13
+- `class-transformer`: ^0.5.0
+- `class-validator`: ^0.14.0
+- `reflect-metadata`: ^0.1.13 || ^0.2.0
 - `rxjs`: ^7.2.0
 
 ## Quick Start
@@ -43,8 +53,7 @@ import { CamundaModule } from 'camunda-nestjs';
       zeebeRestAddress: 'http://localhost:8088',
       clientId: 'orchestration',
       clientSecret: 'secret',
-      oauthUrl:
-        'http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token',
+      oauthUrl: 'http://localhost:18080/auth/realms/camunda-platform/protocol/openid-connect/token',
     }),
   ],
 })
@@ -99,10 +108,7 @@ interface PaymentOutput extends IOutputVariables {
 
 @WorkerJob('payment-processing', 'order-workflow')
 @Injectable()
-export class PaymentHandler extends Camunda8WorkerHandler<
-  PaymentInput,
-  PaymentOutput
-> {
+export class PaymentHandler extends Camunda8WorkerHandler<PaymentInput, PaymentOutput> {
   async handle(
     job: Readonly<ZeebeJob<PaymentInput, ICustomHeaders, PaymentOutput>>,
   ): Promise<typeof JOB_ACTION_ACKNOWLEDGEMENT> {
@@ -110,11 +116,7 @@ export class PaymentHandler extends Camunda8WorkerHandler<
 
     try {
       // Process payment logic
-      const transactionId = await this.processPayment(
-        amount,
-        currency,
-        recipient,
-      );
+      const transactionId = await this.processPayment(amount, currency, recipient);
 
       // Complete the job with output variables
       return await job.complete({
@@ -123,17 +125,12 @@ export class PaymentHandler extends Camunda8WorkerHandler<
       });
     } catch (error) {
       // Fail the job on error
-      const errorMessage =
-        error instanceof Error ? error.message : 'Payment failed';
+      const errorMessage = error instanceof Error ? error.message : 'Payment failed';
       return await job.fail(errorMessage);
     }
   }
 
-  private async processPayment(
-    amount: number,
-    currency: string,
-    recipient: string,
-  ): Promise<string> {
+  private async processPayment(amount: number, currency: string, recipient: string): Promise<string> {
     // Your payment processing logic here
     return `txn-${Date.now()}`;
   }
