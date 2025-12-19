@@ -1,6 +1,6 @@
 {
   "name": "camunda-nestjs",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Camunda8 integration module for NestJS with automatic worker discovery and workflow management",
   "author": "arian-press2015 <arian.press2015@gmail.com>",
   "license": "MIT",
